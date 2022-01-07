@@ -18,6 +18,8 @@ The problem is that Django does not provide a convenient way to leverage these f
 
 DPAC provides a bridge between Postgres And Django.
 
+Both Postgres and Django think in terms of users and groups (or 'roles' in Postgres). However, for both of them the same terms means different things. For Django, its user is an instance of the `User` (`AUTH_USER_MODEL` to be precise) class, but for Postgres it is just a regular row in a regular table. The same goes with groups. A Postgres cluster might have many users belonging to multiple roles, but Django only has one user hardcoded into its settings and since it executes all the queries in the right of the same user, it does not benefit from what the database has to offer.
+
 ## Project status
 
 DPAC is currently under active develpment and has not reached a stable version 1.0 yet.
