@@ -26,6 +26,7 @@ To remedy this, DPAC does the following:
   * these relationships are implemented as triggers in the database, which will fire once a user or group gets created or modified.
 * it provides a way for the Django queries to drop their superuser privileges and execute with the prmissions of some other user. E.g. Django might use its superuser privileges to run the migrations, but switch into the privileges of `user_smith` to retreave all books that Mr Smith is allowed to see.
   * this is achieved by appending `SET SESSION AUTHORIZATION {username};` at the beginning of each of the lower priviledged queryes and executing `SET SESSION AUTHORIZATION DEFAULT;` to return to superuser priviledges.
+* its provides a declarative way to list the access-related SQL clauses in the Django model definition and runs them during the `migrate` command.
 
 ## Project status
 
