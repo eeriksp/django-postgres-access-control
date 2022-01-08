@@ -20,6 +20,13 @@ DPAC provides a bridge between Postgres And Django.
 
 Both Postgres and Django think in terms of users and groups (or 'roles' in Postgres). However, for both of them the same terms means different things. For Django, its user is an instance of the `User` (`AUTH_USER_MODEL` to be precise) class, but for Postgres it is just a regular row in a regular table. The same goes with groups. A Postgres cluster might have many users belonging to multiple roles, but Django only has one user hardcoded into its settings and since it executes all the queries in the right of the same user, it does not benefit from what the database has to offer.
 
+To remedy this, DPAC does the following:
+* it creates a one-to-one correspondence between a Django user and a database user. E.g. a Django user `smith` has a corresponding DB user `user_smith`. However, not all DB users must have a corresponding DJango users, for there might be DB users for administrators, other applications, backups, and other purposes not related to Django.
+* it creaes a one-to-one correspondence between a Django gorup and a database role. E.g. a Django group `librerians` would correspond to the `role_librerians` in the DB. Again, the opposite in not necesarily true.
+  * these relationships are implemented as triggers in the database, which will fire once a user or group gets created or modified.
+* it provides a way for the Django queries to drop their superuser privileges and execute with the prmissions of some other user. E.g. Django might use its superuser privileges to run the migrations, but switch into the privileges of `user_smith` to retreave all books that Mr Smith is allowed to see.
+  * this is achieved by appending `SET SESSION AUTHORIZATION {username};` at the beginning of each of the lower priviledged queryes and executing `SET SESSION AUTHORIZATION DEFAULT;` to return to superuser priviledges.
+
 ## Project status
 
 DPAC is currently under active develpment and has not reached a stable version 1.0 yet.
