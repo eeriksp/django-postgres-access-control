@@ -61,6 +61,17 @@ with switch_user(db_username(request.user)):
     Book.objects.all().only("title") # executed in the logged in user privileges
 ```
 
+## Why to implement access control in the DB, not in the application layer
+
+It would also be possible to write access control code yourself and put it e.g. into the Django managers layer. However, having it in the DB will provide numerour advantages:
+1. Consistency: all common set of permissions is enforced across the application. The same rules will also apply if the data is accessed in some other way without going through the application.
+2. Adaptability: PostgreSQL has a lot of access control mechanisms built in. They provide much more granularity and versatility compared to the options provided by Django.
+3. Security: in case a bug in the application (or any of its third-party dependencies) makes it vulnerable to SQL-injection, even if the user crafts a mallicious query the database makse sure that the query cannot do anything the user is not permitted to do.
+4. Maintainability: The database system will likely overlive any of the application development platforms and maybe even the languages the platforms are based on. PostgeSQL is a very mature and commonly used project which will we developed and supported for a long time. Even if PostgreSQL will eventually be adundoned in the distant future, the parts of the code which adhere to the SQL standard will continue to work on other database systems.
+5. Speed: doing the permission checks in the database is much faster than transporting a lot of data to the application and doing the filtering there. This becomes more and more relevant as the application starts to grow both in terms of the complexity and the amount of data stored in the database.
+6. ACIDRain attacks: the Django code sees only one request at a time, the Django process will not be aware of any other queries made by other users. This open up the possibility to ACIDRain type of attacks. The database sees all the queries at the same time and provides methods to prevent cuncurrent access from causeing trouble.
+
+
 ## Project status
 
 DPAC is currently under active develpment and has not reached a stable version 1.0 yet.
