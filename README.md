@@ -28,6 +28,8 @@ To remedy this, DPAC does the following:
   * this is achieved by appending `SET SESSION AUTHORIZATION {username};` at the beginning of each of the lower priviledged queryes and executing `SET SESSION AUTHORIZATION DEFAULT;` to return to superuser priviledges.
 * its provides a declarative way to list the access-related SQL clauses in the Django model definition and runs them during the `migrate` command.
 
+## How it looks on the Django side
+
 This is how it looks like:
 
 First, add the access granting clauses to your Django model:
@@ -37,17 +39,26 @@ from django.db import models
 from django import settings
 
 class Book(models.Model):
-	title = models.CharField(max_length=200)
-	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-	notes = models.TextField()
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    notes = models.TextField()
 
-	class Access:
-		permissions = [
-			# Coulmn level security: allow all members of the `author` group to see the `title` and `author` of the books
-			"GRANT SELECT (title, author) ON books_book TO author",
-			# Row level security: allow members of the `author` group to see their own books
-			"CREATE POLICY authors_can_see_their_books ON books_book USING (author_id = current_user) TO author;"
-		]
+    class Access:
+        permissions = [
+            # Coulmn level security: allow all members of the `author` group to see the `title` and `author` of the books
+            "GRANT SELECT (title, author) ON books_book TO author",
+            # Row level security: allow members of the `author` group to see their own books
+            "CREATE POLICY authors_can_see_their_books ON books_book USING (author_id = current_user) TO author;"
+        ]
+```
+
+By default the DB requests are made as the user specified in the settings file.
+You can move between different sets of privileges using context managers:
+
+```py
+Book.objects.all().only("title") # executed in superuser privileges
+with switch_user(db_username(request.user)):
+    Book.objects.all().only("title") # executed in the logged in user privileges
 ```
 
 ## Project status
